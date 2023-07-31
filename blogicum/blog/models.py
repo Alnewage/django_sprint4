@@ -9,6 +9,7 @@ User = get_user_model()
 
 
 class PublishedPostManager(models.Manager):
+
     def get_queryset(self):
         return super().get_queryset().filter(
             is_published=True,
@@ -114,17 +115,30 @@ class Location(IsPublishedCreatedAt):
 
 
 class Comment(models.Model):
-    text = models.TextField('Текст комментария')
+
+    text = models.TextField(
+        'Текст комментария',
+    )
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
         related_name='comments',
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
     )
 
     class Meta:
-        ordering = ('created_at',)
+        ordering = (
+            'created_at',
+        )
+
+    def get_absolute_url(self):
+        return reverse(
+            'blog:post_detail',
+            kwargs={'pk': self.post.pk},
+        )
