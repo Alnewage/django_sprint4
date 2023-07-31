@@ -52,6 +52,27 @@ class PostListView(ListView):
         return queryset
 
 
+class PostDetailView(ModelFormPostMixin, DetailView):
+
+    template_name = 'blog/detail.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        post = self.get_object()
+        if not post.is_published and post.author != request.user:
+            raise Http404(
+                "Страница не найдена",
+            )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CommentForm()
+        context['comments'] = Comment.objects.filter(
+            post=self.object,
+        )
+        return context
+
+
 class PostCreateView(LoginRequiredMixin, ModelFormPostMixin, CreateView):
 
     template_name = 'blog/create.html'
@@ -118,27 +139,6 @@ class PostDeleteView(LoginRequiredMixin, ModelFormPostMixin, DeleteView):
         )
 
 
-class PostDetailView(ModelFormPostMixin, DetailView):
-
-    template_name = 'blog/detail.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        post = self.get_object()
-        if not post.is_published and post.author != request.user:
-            raise Http404(
-                "Страница не найдена",
-            )
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = CommentForm()
-        context['comments'] = Comment.objects.filter(
-            post=context['post'],
-        )
-        return context
-
-
 class CategoryPostsView(ListView):
 
     model = Category
@@ -181,11 +181,17 @@ class ProfileDetailView(DetailView):
         posts = self.object.posts.select_related(
             'location',
             'author',
+            'category',
         ).annotate(
             comment_count=Count('comments'),
         ).order_by('-pub_date')
-        paginator = Paginator(posts, self.paginate_by)
-        context['page_obj'] = paginator.get_page(self.request.GET.get('page'))
+        paginator = Paginator(
+            posts,
+            self.paginate_by,
+        )
+        context['page_obj'] = paginator.get_page(
+            self.request.GET.get('page'),
+        )
 
         return context
 
