@@ -64,12 +64,17 @@ class PostDetailView(ModelFormPostMixin, DetailView):
             )
         return super().dispatch(request, *args, **kwargs)
 
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            'author',
+            'location',
+            'category',
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
-        context['comments'] = Comment.objects.filter(
-            post=self.object,
-        )
+        context['comments'] = context['post'].comments.select_related('author')
         return context
 
 
