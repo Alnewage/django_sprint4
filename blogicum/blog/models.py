@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.urls import reverse
 from django.conf import settings
+from django.db.models import Count
 
 
 from .abstract_models import IsPublishedCreatedAt, TitleModel
@@ -10,17 +11,23 @@ from .abstract_models import IsPublishedCreatedAt, TitleModel
 User = get_user_model()
 
 
-class PublishedPostManager(models.Manager):
-
-    def get_queryset(self):
-        return super().get_queryset().filter(
-            is_published=True,
-            category__is_published=True,
-            pub_date__lte=timezone.now(),
-        ).select_related(
+class OwnerPostManager(models.Manager):
+    def owner_queryset(self):
+        return super().get_queryset().select_related(
             'location',
             'author',
             'category',
+        ).annotate(
+            comment_count=Count('comments'),
+        ).order_by('-pub_date')
+
+
+class PublishedPostManager(OwnerPostManager):
+    def get_queryset(self):
+        return self.owner_queryset().filter(
+            is_published=True,
+            category__is_published=True,
+            pub_date__lte=timezone.now(),
         )
 
 
@@ -67,6 +74,7 @@ class Post(TitleModel, IsPublishedCreatedAt):
 
     objects = models.Manager()
     published_manager = PublishedPostManager()
+    owner_manager = OwnerPostManager()
 
     class Meta:
         verbose_name = 'публикация'
