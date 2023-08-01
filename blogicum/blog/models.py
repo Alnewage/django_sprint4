@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 from django.urls import reverse
+from django.conf import settings
+
 
 from .abstract_models import IsPublishedCreatedAt, TitleModel
 
@@ -15,6 +17,10 @@ class PublishedPostManager(models.Manager):
             is_published=True,
             category__is_published=True,
             pub_date__lte=timezone.now(),
+        ).select_related(
+            'location',
+            'author',
+            'category',
         )
 
 
@@ -56,7 +62,7 @@ class Post(TitleModel, IsPublishedCreatedAt):
     image = models.ImageField(
         'Фото',
         blank=True,
-        upload_to='posts_images',
+        upload_to=settings.FILE_PATH_UPLOAD_TO,
     )
 
     objects = models.Manager()
@@ -122,20 +128,26 @@ class Comment(models.Model):
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
+        verbose_name='публикация',
         related_name='comments',
     )
     created_at = models.DateTimeField(
+        'время создания',
         auto_now_add=True,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='автор',
+        related_name='comments',
     )
 
     class Meta:
         ordering = (
             'created_at',
         )
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def get_absolute_url(self):
         return reverse(

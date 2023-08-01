@@ -1,10 +1,49 @@
 from django.contrib import admin
 
-from .models import Category, Location, Post
+from .models import Category, Location, Post, Comment
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'post',
+        'text',
+        'author',
+        'created_at',
+    )
+
+    list_editable = (
+        'text',
+    )
+
+    search_fields = (
+        'text',
+        'author',
+    )
+
+    list_filter = (
+        'author',
+    )
+
+    list_display_links = (
+        'post',
+    )
+
+
+# Подготавливаем модель Comment для вставки на страницу другой модели.
+class CommentInline(admin.TabularInline):
+
+    model = Comment
+    extra = 0
 
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
+
+    inlines = (
+        CommentInline,
+    )
 
     list_display = (
         'title',
