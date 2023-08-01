@@ -7,7 +7,6 @@ from django.views.generic import (
 )
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count
 
 from .models import Post, Category, Comment
 from .forms import PostForm, ProfileEditForm, CommentForm
@@ -58,9 +57,7 @@ class PostListView(ListView):
     template_name = 'blog/index.html'
     ordering = '-pub_date'
     paginate_by = settings.POSTS_LIMIT
-    queryset = Post.published_manager.annotate(
-        comment_count=Count('comments'),
-    )
+    queryset = Post.published_manager.all()
 
 
 class PostDetailView(ModelFormPostMixin, DetailView):
@@ -73,13 +70,12 @@ class PostDetailView(ModelFormPostMixin, DetailView):
     )
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        get_super = super().get(request, *args, **kwargs)
         if not self.object.is_published and (
             self.object.author != request.user
         ):
             raise Http404("Страница не найдена")
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+        return get_super
 
     def get_context_data(self, **kwargs):
         return dict(
@@ -148,9 +144,7 @@ class CategoryPostsView(ListView):
         )
         posts = category.posts(
             manager='published_manager',
-        ).annotate(
-            comment_count=Count('comments'),
-        ).order_by('-pub_date')
+        ).all()
 
         return posts
 
@@ -166,13 +160,12 @@ class ProfileDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        posts = self.object.posts.select_related(
-            'location',
-            'author',
-            'category',
-        ).annotate(
-            comment_count=Count('comments'),
-        ).order_by('-pub_date')
+        posts = self.object.posts(
+            manager='owner_manager' if (
+                self.request.user == self.object
+            ) else 'published_manager'
+            ).all()
+
         paginator = Paginator(
             posts,
             self.paginate_by,
