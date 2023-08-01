@@ -117,4 +117,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 
-FILE_PATH_UPLOAD_TO = 'posts_images'
+FILE_PATH_UPLOAD_TO = 'posts_images/%Y/%m/%d/'

@@ -74,9 +74,12 @@ class PostDetailView(ModelFormPostMixin, DetailView):
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not self.object.is_published and self.object.author != request.user:
+        if not self.object.is_published and (
+            self.object.author != request.user
+        ):
             raise Http404("Страница не найдена")
-        return super().get(request, *args, **kwargs)
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def get_context_data(self, **kwargs):
         return dict(
