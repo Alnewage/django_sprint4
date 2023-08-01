@@ -63,10 +63,7 @@ class PostListView(ListView):
     )
 
 
-class PostDetailView(
-                        ModelFormPostMixin,
-                        DetailView,
-                    ):
+class PostDetailView(ModelFormPostMixin, DetailView):
 
     template_name = 'blog/detail.html'
     queryset = Post.objects.select_related(
@@ -89,11 +86,7 @@ class PostDetailView(
         )
 
 
-class PostCreateView(
-                        LoginRequiredMixin,
-                        ModelFormPostMixin,
-                        CreateView,
-                    ):
+class PostCreateView(LoginRequiredMixin, ModelFormPostMixin, CreateView):
 
     template_name = 'blog/create.html'
 
@@ -111,21 +104,15 @@ class PostCreateView(
 
 
 class PostUpdateView(
-                        LoginRequiredMixin,
-                        ModelFormPostMixin,
-                        PostDefPostMixin,
-                        UpdateView,
-                    ):
+    LoginRequiredMixin, ModelFormPostMixin, PostDefPostMixin, UpdateView,
+):
 
     template_name = 'blog/create.html'
 
 
 class PostDeleteView(
-                        LoginRequiredMixin,
-                        ModelFormPostMixin,
-                        PostDefPostMixin,
-                        DeleteView,
-                    ):
+    LoginRequiredMixin, ModelFormPostMixin, PostDefPostMixin, DeleteView,
+):
 
     template_name = 'blog/create.html'
 
@@ -194,10 +181,7 @@ class ProfileDetailView(DetailView):
         return context
 
 
-class ProfileUpdateView(
-                            LoginRequiredMixin,
-                            UpdateView,
-                        ):
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     model = User
     form_class = ProfileEditForm
@@ -218,11 +202,7 @@ class ProfileUpdateView(
         )
 
 
-class CommentCreateView(
-                            LoginRequiredMixin,
-                            ModelFormCommentMixin,
-                            CreateView,
-                        ):
+class CommentCreateView(LoginRequiredMixin, ModelFormCommentMixin, CreateView):
 
     target_post = None
 
@@ -240,22 +220,16 @@ class CommentCreateView(
 
 
 class CommentUpdateView(
-                            LoginRequiredMixin,
-                            ModelFormCommentMixin,
-                            CommentDefPostMixin,
-                            UpdateView,
-                        ):
+    LoginRequiredMixin, ModelFormCommentMixin, CommentDefPostMixin, UpdateView,
+):
 
     template_name = 'blog/comment.html'
     pk_url_kwarg = 'comment_id'
 
 
 class CommentDeleteView(
-                            LoginRequiredMixin,
-                            ModelFormCommentMixin,
-                            CommentDefPostMixin,
-                            DeleteView,
-                        ):
+    LoginRequiredMixin, ModelFormCommentMixin, CommentDefPostMixin, DeleteView,
+):
 
     template_name = 'blog/comment.html'
     pk_url_kwarg = 'comment_id'
