@@ -164,7 +164,7 @@ class ProfileDetailView(DetailView):
             manager='owner_manager' if (
                 self.request.user == self.object
             ) else 'published_manager'
-            ).all()
+        ).all()
 
         paginator = Paginator(
             posts,
