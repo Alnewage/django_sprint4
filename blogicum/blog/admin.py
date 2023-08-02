@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 from .models import Category, Location, Post, Comment
 
@@ -47,6 +48,7 @@ class PostAdmin(admin.ModelAdmin):
 
     list_display = (
         'title',
+        'short_image',
         'pub_date',
         'author',
         'location',
@@ -71,6 +73,13 @@ class PostAdmin(admin.ModelAdmin):
     list_display_links = (
         'title',
     )
+
+    @admin.display(description='Картинка')
+    def short_image(self, obj):
+        if obj.image:
+            return mark_safe(
+                f'<img src={obj.image.url} width="80" height="60"',
+            )
 
 
 # Подготавливаем модель Post для вставки на страницу другой модели.

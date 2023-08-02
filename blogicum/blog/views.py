@@ -14,6 +14,10 @@ from .models import Category, Comment, Post
 
 User = get_user_model()
 
+# ------------------------------------------------------------
+# --------------------------MIXINS----------------------------
+# ------------------------------------------------------------
+
 
 class ModelFormPostMixin:
 
@@ -40,6 +44,17 @@ class PostDefPostMixin:
         return super().post(request, *args, **kwargs)
 
 
+class SuccessUrlMixin:
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:profile',
+            kwargs={
+                'username': self.request.user.username,
+            },
+        )
+
+
 class CommentDefPostMixin:
 
     def post(self, request, *args, **kwargs):
@@ -51,12 +66,15 @@ class CommentDefPostMixin:
             )
         return super().post(request, *args, **kwargs)
 
+# ------------------------------------------------------------
+# ----------------------------CBV-----------------------------
+# ------------------------------------------------------------
+
 
 class PostListView(ListView):
 
     model = Post
     template_name = 'blog/index.html'
-    ordering = '-pub_date'
     paginate_by = settings.POSTS_LIMIT
     queryset = Post.published_manager.all()
 
@@ -90,21 +108,15 @@ class PostDetailView(ModelFormPostMixin, DetailView):
         )
 
 
-class PostCreateView(LoginRequiredMixin, ModelFormPostMixin, CreateView):
+class PostCreateView(
+    LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin, CreateView,
+):
 
     template_name = 'blog/create.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:profile',
-            kwargs={
-                'username': self.request.user.username,
-            },
-        )
 
 
 class PostUpdateView(
@@ -115,7 +127,8 @@ class PostUpdateView(
 
 
 class PostDeleteView(
-    LoginRequiredMixin, ModelFormPostMixin, PostDefPostMixin, DeleteView,
+    LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin,
+    PostDefPostMixin, DeleteView,
 ):
 
     template_name = 'blog/create.html'
@@ -124,14 +137,6 @@ class PostDeleteView(
         return dict(
             **super().get_context_data(**kwargs),
             form=PostForm(instance=self.object),
-        )
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:profile',
-            kwargs={
-                'username': self.request.user.username,
-            },
         )
 
 
@@ -147,11 +152,10 @@ class CategoryPostsView(ListView):
             slug=self.kwargs['category_slug'],
             is_published=True,
         )
-        posts = category.posts(
+
+        return category.posts(
             manager='published_manager',
         ).all()
-
-        return posts
 
 
 class ProfileDetailView(DetailView):

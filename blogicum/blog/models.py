@@ -46,7 +46,6 @@ class Post(TitleModel, IsPublishedCreatedAt):
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор публикации',
-        related_name='posts',
     )
 
     location = models.ForeignKey(
@@ -54,7 +53,6 @@ class Post(TitleModel, IsPublishedCreatedAt):
         on_delete=models.SET_NULL,
         null=True,
         verbose_name='Местоположение',
-        related_name='posts',
     )
 
     category = models.ForeignKey(
@@ -62,7 +60,6 @@ class Post(TitleModel, IsPublishedCreatedAt):
         on_delete=models.SET_NULL,
         null=True,
         verbose_name='Категория',
-        related_name='posts',
     )
 
     image = models.ImageField(
@@ -79,6 +76,7 @@ class Post(TitleModel, IsPublishedCreatedAt):
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
         ordering = ['-pub_date']
+        default_related_name = 'posts'
 
     def __str__(self):
         return self.title
@@ -146,13 +144,13 @@ class Comment(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name='автор',
-        related_name='comments',
     )
 
     class Meta:
         ordering = (
             'created_at',
         )
+        default_related_name = 'comments'
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
 
