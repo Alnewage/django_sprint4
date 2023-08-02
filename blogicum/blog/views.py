@@ -40,6 +40,17 @@ class PostDefPostMixin:
         return super().post(request, *args, **kwargs)
 
 
+class SuccessUrlMixin:
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:profile',
+            kwargs={
+                'username': self.request.user.username,
+            },
+        )
+
+
 class CommentDefPostMixin:
 
     def post(self, request, *args, **kwargs):
@@ -90,21 +101,15 @@ class PostDetailView(ModelFormPostMixin, DetailView):
         )
 
 
-class PostCreateView(LoginRequiredMixin, ModelFormPostMixin, CreateView):
+class PostCreateView(
+    LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin, CreateView,
+):
 
     template_name = 'blog/create.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:profile',
-            kwargs={
-                'username': self.request.user.username,
-            },
-        )
 
 
 class PostUpdateView(
@@ -115,7 +120,8 @@ class PostUpdateView(
 
 
 class PostDeleteView(
-    LoginRequiredMixin, ModelFormPostMixin, PostDefPostMixin, DeleteView,
+    LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin,
+    PostDefPostMixin, DeleteView,
 ):
 
     template_name = 'blog/create.html'
@@ -124,14 +130,6 @@ class PostDeleteView(
         return dict(
             **super().get_context_data(**kwargs),
             form=PostForm(instance=self.object),
-        )
-
-    def get_success_url(self):
-        return reverse_lazy(
-            'blog:profile',
-            kwargs={
-                'username': self.request.user.username,
-            },
         )
 
 
