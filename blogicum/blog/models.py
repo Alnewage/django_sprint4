@@ -5,14 +5,13 @@ from django.urls import reverse
 from django.conf import settings
 from django.db.models import Count
 
-
 from .abstract_models import IsPublishedCreatedAt, TitleModel
 
 User = get_user_model()
 
 
 class OwnerPostManager(models.Manager):
-    def owner_queryset(self):
+    def get_queryset(self):
         return super().get_queryset().select_related(
             'location',
             'author',
@@ -24,7 +23,7 @@ class OwnerPostManager(models.Manager):
 
 class PublishedPostManager(OwnerPostManager):
     def get_queryset(self):
-        return self.owner_queryset().filter(
+        return super().get_queryset().filter(
             is_published=True,
             category__is_published=True,
             pub_date__lte=timezone.now(),

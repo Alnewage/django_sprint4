@@ -1,15 +1,15 @@
-from django.shortcuts import get_object_or_404, redirect, Http404
-from django.urls import reverse_lazy
-from django.contrib.auth import get_user_model
-from django.core.paginator import Paginator
-from django.views.generic import (
-    ListView, CreateView, UpdateView, DetailView, DeleteView,
-)
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, Http404, redirect
+from django.urls import reverse_lazy
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView,  UpdateView,
+)
 
-from .models import Post, Category, Comment
-from .forms import PostForm, ProfileEditForm, CommentForm
+from .forms import CommentForm, PostForm, ProfileEditForm
+from .models import Category, Comment, Post
 
 User = get_user_model()
 
