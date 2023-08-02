@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.views.generic.edit import FormMixin
 from django.shortcuts import get_object_or_404, Http404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -77,7 +76,7 @@ class PostDetailView(ModelFormPostMixin, DetailView):
             [
                 not self.object.is_published,
                 not self.object.category.is_published,
-                not self.object.pub_date < timezone.now(),
+                not (self.object.pub_date < timezone.now()),
             ]
         ):
             raise Http404("Страница не найдена")
