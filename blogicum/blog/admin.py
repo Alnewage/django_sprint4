@@ -74,6 +74,16 @@ class PostAdmin(admin.ModelAdmin):
         'title',
     )
 
+    save_on_top = True
+    fields = list_display
+
+    # Это обязательный атрибут, иначе будет ошибка,
+    # так как эти поля нельзя редактировать.
+    readonly_fields = (
+        'created_at',
+        'short_image',
+    )
+
     @admin.display(description='Картинка')
     def short_image(self, obj):
         if obj.image:
@@ -148,6 +158,6 @@ class LocationAdmin(admin.ModelAdmin):
     )
 
 
-# значение, которое будет отображаться в административной панели,
-# когда поле объекта не имеет значения.
 admin.site.empty_value_display = 'Не задано'
+admin.site.site_title = 'Администрирование Блогикума'
+admin.site.site_header = 'Администрирование Блогикума'
