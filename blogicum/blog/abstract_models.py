@@ -2,7 +2,7 @@ from django.db import models
 
 
 class TitleModel(models.Model):
-    """Абстрактная модель. Добвляет title."""
+    """Абстрактная модель. Добавляет title."""
 
     title = models.CharField(
         max_length=256,
@@ -14,7 +14,7 @@ class TitleModel(models.Model):
 
 
 class IsPublishedCreatedAt(models.Model):
-    """Абстрактная модель. Добвляет is_published и created_at."""
+    """Абстрактная модель. Добавляет is_published и created_at."""
 
     is_published = models.BooleanField(
         default=True,
