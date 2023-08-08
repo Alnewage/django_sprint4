@@ -37,8 +37,7 @@ class PostDefPostMixin:
         post = self.get_object()
         if post.author != request.user:
             return redirect(
-                'blog:post_detail',
-                pk=post.pk,
+                post.get_absolute_url(),
             )
 
         return super().post(request, *args, **kwargs)
@@ -209,18 +208,12 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
 class CommentCreateView(LoginRequiredMixin, ModelFormCommentMixin, CreateView):
 
-    target_post = None
-
-    def dispatch(self, request, *args, **kwargs):
-        self.target_post = get_object_or_404(
-            Post,
-            pk=kwargs['pk'],
-        )
-        return super().dispatch(request, *args, **kwargs)
-
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post = self.target_post
+        form.instance.post = get_object_or_404(
+            Post,
+            pk=self.kwargs['pk'],
+        )
         return super().form_valid(form)
 
 
