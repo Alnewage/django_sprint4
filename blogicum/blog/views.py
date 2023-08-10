@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, Http404, redirect
+from django.shortcuts import Http404, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import (
@@ -141,20 +141,25 @@ class PostDeleteView(
 
 class CategoryPostsView(ListView):
 
-    model = Category
     template_name = 'blog/category.html'
     paginate_by = settings.POSTS_LIMIT
+    category = None
 
     def get_queryset(self):
-        category = get_object_or_404(
+        self.category = get_object_or_404(
             Category,
             slug=self.kwargs['category_slug'],
             is_published=True,
         )
 
-        return category.posts(
+        return self.category.posts(
             manager='published_manager',
         ).all()
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = self.category
+        return context
 
 
 class ProfileDetailView(DetailView):
