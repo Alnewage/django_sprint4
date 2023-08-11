@@ -78,8 +78,8 @@ class PostListView(ListView):
     queryset = Post.published_manager.all()
 
 
-class PostDetailView(ModelFormPostMixin, DetailView):
-
+class PostDetailView(DetailView):
+    model = Post
     template_name = 'blog/detail.html'
     queryset = Post.objects.select_related(
         'author',
