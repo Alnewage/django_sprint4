@@ -31,16 +31,25 @@ class ModelFormCommentMixin:
     form_class = CommentForm
 
 
-class PostDefPostMixin:
+class PostCheckUserMixin:
 
-    def post(self, request, *args, **kwargs):
-        post = self.get_object()
-        if post.author != request.user:
+    object = None
+    queryset = Post.objects.select_related(
+        'author',
+        'location',
+        'category',
+    )
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.author != request.user:
             return redirect(
-                post.get_absolute_url(),
+                self.object.get_absolute_url(),
             )
+        return super().dispatch(request, *args, **kwargs)
 
-        return super().post(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data())
 
 
 class SuccessUrlMixin:
@@ -119,7 +128,7 @@ class PostCreateView(
 
 
 class PostUpdateView(
-    LoginRequiredMixin, ModelFormPostMixin, PostDefPostMixin, UpdateView,
+    LoginRequiredMixin, PostCheckUserMixin, ModelFormPostMixin, UpdateView,
 ):
 
     template_name = 'blog/create.html'
@@ -127,7 +136,7 @@ class PostUpdateView(
 
 class PostDeleteView(
     LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin,
-    PostDefPostMixin, DeleteView,
+    PostCheckUserMixin, DeleteView,
 ):
 
     template_name = 'blog/create.html'
