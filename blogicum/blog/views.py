@@ -6,8 +6,9 @@ from django.shortcuts import Http404, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import (
-    CreateView, DeleteView, DetailView, ListView, UpdateView
+    CreateView, DeleteView, DetailView, ListView, UpdateView,
 )
+from django.views.generic.list import MultipleObjectMixin
 
 from .forms import CommentForm, PostForm, ProfileEditForm
 from .models import Category, Comment, Post
@@ -171,32 +172,57 @@ class CategoryPostsView(ListView):
         return context
 
 
-class ProfileDetailView(DetailView):
+class ProfileDetailView(DetailView, MultipleObjectMixin):
 
     model = User
     template_name = 'blog/profile.html'
-    context_object_name = 'profile'
     paginate_by = settings.POSTS_LIMIT
     slug_field = 'username'
     slug_url_kwarg = 'username'
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        posts = self.object.posts(
+        context_object_name = 'profile'
+        context = super(DetailView, self).get_context_data(**kwargs)
+        context_object_name = None
+        queryset = self.object.posts(
             manager='owner_manager' if (
                 self.request.user == self.object
             ) else 'published_manager'
         ).all()
-
-        paginator = Paginator(
-            posts,
-            self.paginate_by,
+        context.update(
+            super(MultipleObjectMixin, self).get_context_data(
+                object_list=queryset,
+                **kwargs,
+            )
         )
-        context['page_obj'] = paginator.get_page(
-            self.request.GET.get('page'),
-        )
-
         return context
+
+# class ProfileDetailView(DetailView):
+#
+#     model = User
+#     template_name = 'blog/profile.html'
+#     context_object_name = 'profile'
+#     paginate_by = settings.POSTS_LIMIT
+#     slug_field = 'username'
+#     slug_url_kwarg = 'username'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         posts = self.object.posts(
+#             manager='owner_manager' if (
+#                 self.request.user == self.object
+#             ) else 'published_manager'
+#         ).all()
+#
+#         paginator = Paginator(
+#             posts,
+#             self.paginate_by,
+#         )
+#         context['page_obj'] = paginator.get_page(
+#             self.request.GET.get('page'),
+#         )
+#
+#         return context
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
