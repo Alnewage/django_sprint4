@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
 from django.shortcuts import Http404, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -181,14 +180,14 @@ class ProfileDetailView(DetailView, MultipleObjectMixin):
     slug_url_kwarg = 'username'
 
     def get_context_data(self, **kwargs):
-        context_object_name = 'profile'
-        context = super(DetailView, self).get_context_data(**kwargs)
-        context_object_name = None
+        self.context_object_name = 'profile'
         queryset = self.object.posts(
             manager='owner_manager' if (
                 self.request.user == self.object
             ) else 'published_manager'
         ).all()
+        self.object_list = queryset
+        context = super(DetailView, self).get_context_data(**kwargs)
         context.update(
             super(MultipleObjectMixin, self).get_context_data(
                 object_list=queryset,
@@ -196,33 +195,6 @@ class ProfileDetailView(DetailView, MultipleObjectMixin):
             )
         )
         return context
-
-# class ProfileDetailView(DetailView):
-#
-#     model = User
-#     template_name = 'blog/profile.html'
-#     context_object_name = 'profile'
-#     paginate_by = settings.POSTS_LIMIT
-#     slug_field = 'username'
-#     slug_url_kwarg = 'username'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         posts = self.object.posts(
-#             manager='owner_manager' if (
-#                 self.request.user == self.object
-#             ) else 'published_manager'
-#         ).all()
-#
-#         paginator = Paginator(
-#             posts,
-#             self.paginate_by,
-#         )
-#         context['page_obj'] = paginator.get_page(
-#             self.request.GET.get('page'),
-#         )
-#
-#         return context
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
