@@ -14,31 +14,33 @@ from .models import Category, Comment, Post
 
 User = get_user_model()
 
+
 # ------------------------------------------------------------
 # --------------------------MIXINS----------------------------
 # ------------------------------------------------------------
 
 
 class ModelFormPostMixin:
-
     model = Post
     form_class = PostForm
-
-
-class ModelFormCommentMixin:
-
-    model = Comment
-    form_class = CommentForm
-
-
-class PostCheckUserMixin:
-
-    object = None
+    template_name = 'blog/create.html'
     queryset = Post.objects.select_related(
         'author',
         'location',
         'category',
     )
+
+
+class ModelFormCommentMixin:
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment.html'
+    pk_url_kwarg = 'comment_id'
+
+
+class CheckUserMixin:
+
+    object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -63,24 +65,12 @@ class SuccessUrlMixin:
         )
 
 
-class CommentDefPostMixin:
-
-    def post(self, request, *args, **kwargs):
-        comment = self.get_object()
-        if comment.author != request.user:
-            return redirect(
-                'blog:post_detail',
-                pk=comment.post.pk,
-            )
-        return super().post(request, *args, **kwargs)
-
 # ------------------------------------------------------------
 # ----------------------------CBV-----------------------------
 # ------------------------------------------------------------
 
 
 class PostListView(ListView):
-
     model = Post
     template_name = 'blog/index.html'
     paginate_by = settings.POSTS_LIMIT
@@ -99,11 +89,11 @@ class PostDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         get_super = super().get(request, *args, **kwargs)
         if self.object.author != request.user and any(
-            [
-                not self.object.is_published,
-                not self.object.category.is_published,
-                not (self.object.pub_date < timezone.now()),
-            ]
+                [
+                    not self.object.is_published,
+                    not self.object.category.is_published,
+                    not (self.object.pub_date < timezone.now()),
+                ]
         ):
             raise Http404("Страница не найдена")
         return get_super
@@ -120,26 +110,21 @@ class PostCreateView(
     LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin, CreateView,
 ):
 
-    template_name = 'blog/create.html'
-
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
 
 class PostUpdateView(
-    LoginRequiredMixin, PostCheckUserMixin, ModelFormPostMixin, UpdateView,
+    LoginRequiredMixin, CheckUserMixin, ModelFormPostMixin, UpdateView,
 ):
-
-    template_name = 'blog/create.html'
+    pass
 
 
 class PostDeleteView(
     LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin,
-    PostCheckUserMixin, DeleteView,
+    CheckUserMixin, DeleteView,
 ):
-
-    template_name = 'blog/create.html'
 
     def get_context_data(self, **kwargs):
         return dict(
@@ -149,7 +134,6 @@ class PostDeleteView(
 
 
 class CategoryPostsView(ListView):
-
     template_name = 'blog/category.html'
     paginate_by = settings.POSTS_LIMIT
     category = None
@@ -172,7 +156,6 @@ class CategoryPostsView(ListView):
 
 
 class ProfileDetailView(DetailView):
-
     model = User
     template_name = 'blog/profile.html'
     context_object_name = 'profile'
@@ -184,7 +167,7 @@ class ProfileDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         posts = self.object.posts(
             manager='owner_manager' if (
-                self.request.user == self.object
+                    self.request.user == self.object
             ) else 'published_manager'
         ).all()
 
@@ -200,7 +183,6 @@ class ProfileDetailView(DetailView):
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
-
     model = User
     form_class = ProfileEditForm
     template_name = 'blog/user.html'
@@ -232,19 +214,14 @@ class CommentCreateView(LoginRequiredMixin, ModelFormCommentMixin, CreateView):
 
 
 class CommentUpdateView(
-    LoginRequiredMixin, ModelFormCommentMixin, CommentDefPostMixin, UpdateView,
+    LoginRequiredMixin, ModelFormCommentMixin, CheckUserMixin, UpdateView,
 ):
-
-    template_name = 'blog/comment.html'
-    pk_url_kwarg = 'comment_id'
+    pass
 
 
 class CommentDeleteView(
-    LoginRequiredMixin, ModelFormCommentMixin, CommentDefPostMixin, DeleteView,
+    LoginRequiredMixin, ModelFormCommentMixin, CheckUserMixin, DeleteView,
 ):
-
-    template_name = 'blog/comment.html'
-    pk_url_kwarg = 'comment_id'
 
     def get_success_url(self):
         return self.object.get_absolute_url()
