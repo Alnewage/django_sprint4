@@ -2,12 +2,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.shortcuts import Http404, redirect, get_object_or_404
+from django.shortcuts import Http404, get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import (
-    CreateView, DeleteView, DetailView, ListView, UpdateView
-)
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  UpdateView)
 
 from .forms import CommentForm, PostForm, ProfileEditForm
 from .models import Category, Comment, Post
@@ -87,7 +86,7 @@ class PostDetailView(DetailView):
     )
 
     def get(self, request, *args, **kwargs):
-        get_super = super().get(request, *args, **kwargs)
+        get_super: object = super().get(request, *args, **kwargs)
         if self.object.author != request.user and any(
                 [
                     not self.object.is_published,
@@ -116,13 +115,13 @@ class PostCreateView(
 
 
 class PostUpdateView(
-    LoginRequiredMixin, CheckUserMixin, ModelFormPostMixin, UpdateView,
+    CheckUserMixin, ModelFormPostMixin, UpdateView,
 ):
     pass
 
 
 class PostDeleteView(
-    LoginRequiredMixin, SuccessUrlMixin, ModelFormPostMixin,
+    SuccessUrlMixin, ModelFormPostMixin,
     CheckUserMixin, DeleteView,
 ):
 
