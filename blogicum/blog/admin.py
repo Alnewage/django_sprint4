@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import Category, Location, Post, Comment
+from .models import Category, Comment, Location, Post
 
 
 @admin.register(Comment)
@@ -90,6 +90,7 @@ class PostAdmin(admin.ModelAdmin):
             return mark_safe(
                 f'<img src={obj.image.url} width="80" height="60"',
             )
+        return None
 
 
 # Подготавливаем модель Post для вставки на страницу другой модели.

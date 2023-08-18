@@ -1,9 +1,9 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils import timezone
-from django.urls import reverse
-from django.conf import settings
 from django.db.models import Count
+from django.urls import reverse
+from django.utils import timezone
 
 from .abstract_models import IsPublishedCreatedAt, TitleModel
 
