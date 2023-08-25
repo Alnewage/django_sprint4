@@ -149,9 +149,10 @@ class CategoryPostsView(ListView):
         ).all()
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['category'] = self.category
-        return context
+        return dict(
+            **super().get_context_data(**kwargs),
+            category=self.category,
+        )
 
 
 class ProfileDetailView(DetailView):
