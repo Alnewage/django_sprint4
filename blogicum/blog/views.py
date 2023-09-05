@@ -38,16 +38,13 @@ class ModelFormCommentMixin:
 
 
 class CheckUserMixin:
-
     object = None
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if self.object.author != request.user:
-            return redirect(
-                self.object.get_absolute_url(),
-            )
-        return super().dispatch(request, *args, **kwargs)
+        return self.object.author != request.user and redirect(
+            self.object.get_absolute_url(),
+        ) or super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
         return self.render_to_response(self.get_context_data())
@@ -85,19 +82,15 @@ class PostDetailView(DetailView):
         'category',
     )
 
-    def get(self, request, *args, **kwargs):
-        get_super: object = super().get(request, *args, **kwargs)
-        if self.object.author != request.user and any(
-                [
-                    not self.object.is_published,
-                    not self.object.category.is_published,
-                    not (self.object.pub_date < timezone.now()),
-                ]
+    def get_context_data(self, **kwargs):
+        if self.object.author != self.request.user and not all(
+            [
+                self.object.is_published,
+                self.object.category.is_published,
+                self.object.pub_date < timezone.now(),
+            ]
         ):
             raise Http404("Страница не найдена")
-        return get_super
-
-    def get_context_data(self, **kwargs):
         return dict(
             **super().get_context_data(**kwargs),
             form=CommentForm(),
@@ -167,7 +160,7 @@ class ProfileDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         posts = self.object.posts(
             manager='owner_manager' if (
-                    self.request.user == self.object
+                self.request.user == self.object
             ) else 'published_manager'
         ).all()
 
@@ -190,7 +183,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         return get_object_or_404(
             User,
-            username=self.request.user.username,
+            username=self.request.user,
         )
 
     def get_success_url(self):
