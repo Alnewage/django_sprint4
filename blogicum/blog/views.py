@@ -76,21 +76,13 @@ class PostListView(ListView):
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/detail.html'
-    queryset = Post.objects.select_related(
-        'author',
-        'location',
-        'category',
-    )
+
+    def get_queryset(self):
+        return self.model.owner_manager.all() if (
+            self.get_object(self.model.objects).author == self.request.user
+        ) else self.model.published_manager.all()
 
     def get_context_data(self, **kwargs):
-        if self.object.author != self.request.user and not all(
-            [
-                self.object.is_published,
-                self.object.category.is_published,
-                self.object.pub_date < timezone.now(),
-            ]
-        ):
-            raise Http404("Страница не найдена")
         return dict(
             **super().get_context_data(**kwargs),
             form=CommentForm(),
